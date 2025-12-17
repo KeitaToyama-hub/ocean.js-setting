@@ -1,0 +1,25 @@
+{
+    "name": "my-nautilus",
+    "version": "1.0.0",
+    "description": "",
+    "keywords": [],
+    "license": "ISC",
+    "author": "",
+    "type": "commonjs",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {
+        "@deltadao/nautilus": "^1.1.0",
+        "@oceanprotocol/lib": "^4.3.7",
+        "@truffle/hdwallet-provider": "^2.1.15",
+        "crypto-js": "^4.2.0",
+        "dotenv": "^17.2.3",
+        "ethers": "^5.7.2"
+    },
+    "devDependencies": {
+        "@types/cors": "^2.8.19",
+        "@types/express": "^5.0.6"
+    }
+}
