@@ -13,10 +13,12 @@ async function oceanConfig() {
         process.env.OCEAN_NETWORK_URL || configHelperNetworks[1].nodeUri
     );
     const publisherAccount = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-
+    const chainId = parseInt(String((await publisherAccount.provider.getNetwork()).chainId))
+    console.log('chainId:', chainId);
     let oceanConfig = new ConfigHelper().getConfig(
-        parseInt(String((await publisherAccount.provider.getNetwork()).chainId))
+        chainId
     );
+    console.log('oceanConfig:', oceanConfig);
     const aquarius = new Aquarius(oceanConfig.metadataCacheUri);
 
     // If using local development environment, read the addresses from local file.
