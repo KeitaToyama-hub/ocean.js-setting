@@ -1,4 +1,3 @@
-// Import the function from your config file
 const { oceanConfig } = require('./config.js');
 
 async function runTest() {
