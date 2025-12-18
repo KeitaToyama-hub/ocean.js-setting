@@ -3,7 +3,7 @@ const { oceanConfig } = require('./config.js');
 const { ZERO_ADDRESS, NftFactory } = require('@oceanprotocol/lib');
 
 // Define a function createFRE()
-const createFRE = async() => {
+const createFRE = async () => {
 
     const DISP_NFT_NAME = 'Datatoken 3'
     const DISP_NFT_SYMBOL = 'DT3'
@@ -56,7 +56,7 @@ const createFRE = async() => {
 // Call the createFRE() function 
 createFRE()
     .then(({ trxReceipt }) => {
-        console.log(`TX Receipt ${trxReceipt}`);
+        console.log(`TX Receipt`, trxReceipt);
         process.exit(1);
     })
     .catch((err) => {
