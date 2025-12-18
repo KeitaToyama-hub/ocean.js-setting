@@ -16,7 +16,7 @@ const {
 } = require("@oceanprotocol/lib");
 
 // replace the did here
-const did = "did:ope:9965d923c3c1f1f444c25278aae5ba3aeb3255e77b584888a09534f732b31213";
+const did = "did:ope:d2f6714c6dc2e8ec2fe3b812033951fc39e25452fe0e1a297d824c10e415e701";
 
 // This function takes did as a parameter and updates the data NFT information
 const consumeAsset = async (did) => {
@@ -24,12 +24,11 @@ const consumeAsset = async (did) => {
     const consumer = config.consumerAccount;
 
     // Fetch ddo from Aquarius
-    const aquarius = new Aquarius('PUT HERE YOU NODE URL');
+    const aquarius = new Aquarius('https://ocean-node-vm3.oceanenterprise.io');
     console.log('aquarius', aquarius);
     console.log("Consuming asset with DID:", did);
     const asset = await aquarius.waitForIndexer(did, null, null, 4000, 100);
     console.log("Asset to consume:", asset);
-    const nft = new Nft(consumer);
 
     await approve(
         consumer,
@@ -40,10 +39,14 @@ const consumeAsset = async (did) => {
         "1"
     );
 
+    console.log("Approved 1 OCEAN token for Fixed Rate Exchange");
+    console.log("Creating FixedRateExchange instance...", config.fixedRateExchangeAddress);
     const fixedRate = new FixedRateExchange(
         config.fixedRateExchangeAddress,
         consumer
     );
+
+    console.log('config.fixedRateId', config.fixedRateId);
 
     const txBuyDt = await fixedRate.buyDatatokens(
         config.fixedRateId,
@@ -51,7 +54,7 @@ const consumeAsset = async (did) => {
         "2"
     );
 
-    console.log('txBuyDt', txBuyDt);
+    console.log("Datatokens purchased, transaction:", txBuyDt);
 
     const initializeData = await ProviderInstance.initialize(
         asset.id,

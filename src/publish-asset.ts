@@ -34,7 +34,7 @@ export async function publishAsset() {
   }
 
   const service = serviceBuilder
-    .setServiceEndpoint('https://provider.dev.pontus-x.eu') // Provider URL
+    .setServiceEndpoint('https://ocean-node-vm3.oceanenterprise.io') // Provider URL
     .setTimeout(0)
     .addFile(urlFile)
     .setPricing({ type: 'free' }) // For paid assets, use type: 'fixed', etc.
