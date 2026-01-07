@@ -13,7 +13,7 @@ const {
 } = require("@oceanprotocol/lib");
 
 // replace the did here
-const did = "did:ope:c226e570e93ac6abd7a739576e258ea819cabd53a16a9605fb9c0fb590fee171";
+const did = "did:ope:1fd532ab6c3b4190390407ea5178de39d7a6a2c643451263c30d6f723313e231";
 
 async function downloadFile(
     url,
@@ -73,7 +73,6 @@ const consumeAsset = async (did) => {
         datatoken,
         asset.credentialSubject.services[0].serviceEndpoint
     );
-    console.log('tx', tx);
     if (!tx) {
         console.error(
             "Error ordering access for " + did + ".  Do you have enough tokens?"
