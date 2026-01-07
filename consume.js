@@ -82,7 +82,6 @@ const consumeAsset = async (did) => {
 
     const orderTx = await tx.wait();
 
-    console.log('orderTx', orderTx);
     const policyServer = {
         sessionId: '',
         successRedirectUri: ``,
