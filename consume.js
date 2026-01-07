@@ -1,22 +1,53 @@
 // Note: Make sure .env file and config.js are created and setup correctly
 const { oceanConfig } = require("./config.js");
-const { getEventFromTx } = require('./utils.js');
+const { fetch } = require("cross-fetch");
+const path = require("path"); // Added path module
+const fs = require("fs").promises; // Added fs module with promises support
+
 
 const {
-    ZERO_ADDRESS,
-    NftFactory,
-    getHash,
-    ProviderFees,
     Datatoken,
     ProviderInstance,
-    Nft,
-    FixedRateExchange,
-    approve,
+    orderAsset,
     Aquarius
 } = require("@oceanprotocol/lib");
 
 // replace the did here
-const did = "did:ope:d2f6714c6dc2e8ec2fe3b812033951fc39e25452fe0e1a297d824c10e415e701";
+const did = "did:ope:c226e570e93ac6abd7a739576e258ea819cabd53a16a9605fb9c0fb590fee171";
+
+async function downloadFile(
+    url,
+    downloadPath
+) {
+    const response = await fetch(url);
+    console.log('response', response?.status);
+    if (!response.ok) {
+        throw new Error("Response error.");
+    }
+
+    const defaultName = 'file.out'
+    let filename
+
+    try {
+        // try to get it from headers
+        filename = response.headers
+            .get("content-disposition")
+            .match(/attachment;filename=(.+)/)[1];
+    } catch {
+        filename = defaultName;
+    }
+
+    const filePath = path.join(downloadPath, filename);
+    const data = await response.arrayBuffer();
+
+    try {
+        await fs.writeFile(filePath, Buffer.from(data));
+    } catch (err) {
+        throw new Error("Error while saving the file:", err.message);
+    }
+
+    return { data, filename };
+}
 
 // This function takes did as a parameter and updates the data NFT information
 const consumeAsset = async (did) => {
@@ -29,76 +60,56 @@ const consumeAsset = async (did) => {
     console.log("Consuming asset with DID:", did);
     const asset = await aquarius.waitForIndexer(did, null, null, 4000, 100);
     console.log("Asset to consume:", asset);
-
-    await approve(
+    const serviceId = asset.credentialSubject.services[0].id;
+    const datatoken = new Datatoken(
+        consumer,
+        11155111,
+        config
+    );
+    const tx = await orderAsset(
+        asset,
         consumer,
         config,
-        consumer.address,
-        config.oceanTokenAddress,
-        config.fixedRateExchangeAddress,
-        "1"
+        datatoken,
+        asset.credentialSubject.services[0].serviceEndpoint
     );
-
-    console.log("Approved 1 OCEAN token for Fixed Rate Exchange");
-    console.log("Creating FixedRateExchange instance...", config.fixedRateExchangeAddress);
-    const fixedRate = new FixedRateExchange(
-        config.fixedRateExchangeAddress,
-        consumer
-    );
-
-    console.log('config.fixedRateId', config.fixedRateId);
-
-    const txBuyDt = await fixedRate.buyDatatokens(
-        config.fixedRateId,
-        "1",
-        "2"
-    );
-
-    console.log("Datatokens purchased, transaction:", txBuyDt);
-
-    const initializeData = await ProviderInstance.initialize(
-        asset.id,
-        asset.services[0].id,
-        0,
-        consumer.address,
-        config.providerUri
-    );
-
-    const providerFees = {
-        providerFeeAddress: initializeData.providerFee.providerFeeAddress,
-        providerFeeToken: initializeData.providerFee.providerFeeToken,
-        providerFeeAmount: initializeData.providerFee.providerFeeAmount,
-        v: initializeData.providerFee.v,
-        r: initializeData.providerFee.r,
-        s: initializeData.providerFee.s,
-        providerData: initializeData.providerFee.providerData,
-        validUntil: initializeData.providerFee.validUntil,
-    };
-
-    const datatoken = new Datatoken(consumer);
-
-    const tx = await datatoken.startOrder(
-        config.fixedRateExchangeAddress,
-        consumer.address,
-        0,
-        providerFees
-    );
+    console.log('tx', tx);
+    if (!tx) {
+        console.error(
+            "Error ordering access for " + did + ".  Do you have enough tokens?"
+        );
+        return;
+    }
 
     const orderTx = await tx.wait();
-    const orderStartedTx = getEventFromTx(orderTx, "OrderStarted");
-    console.log('orderStartedTx', orderStartedTx);
+
+    console.log('orderTx', orderTx);
+    const policyServer = {
+        sessionId: '',
+        successRedirectUri: ``,
+        errorRedirectUri: ``,
+        responseRedirectUri: ``,
+        presentationDefinitionUri: ``
+    }
     const downloadURL = await ProviderInstance.getDownloadUrl(
         asset.id,
-        asset.services[0].id,
+        serviceId,
         0,
         orderTx.transactionHash,
-        config.providerUri,
-        consumer
+        asset.credentialSubject.services[0].serviceEndpoint,
+        consumer,
+        policyServer
     );
-    console.log("Download URL:", downloadURL);
+
+    try {
+        const path = ".";
+        const { filename } = await downloadFile(downloadURL, path);
+        console.log("File downloaded successfully:", path + "/" + filename);
+    } catch (e) {
+        console.log(`Download url dataset failed: ${e}`);
+    }
 };
 
-// Call setMetadata(...) function defined above
 consumeAsset(did).then(() => {
     process.exit();
 }).catch((err) => {
